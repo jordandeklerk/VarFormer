@@ -4,8 +4,6 @@ from models import BayesFormer, ATFNet, Autoformer, TimesNet, DLinear, FEDformer
     Informer, PatchTST, FreTS, FITS, TFDNet, \
    Crossformer, FiLM, SCINet, iTransformer \
      
-
-
 class Exp_Basic(object):
     def __init__(self, args):
         self.args = args

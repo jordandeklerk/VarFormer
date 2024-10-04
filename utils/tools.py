@@ -4,6 +4,23 @@ import torch
 import matplotlib.pyplot as plt
 
 
+
+# def adjust_learning_rate(optimizer, epoch, args):
+#     # lr = args.learning_rate * (0.2 ** (epoch // 2))
+#     if args.lradj == 'type1':
+#         lr_adjust = {epoch: args.learning_rate * (0.5 ** ((epoch - 1) // 1))}
+#     elif args.lradj == 'type2':
+#         lr_adjust = {
+#             2: 5e-5, 4: 1e-5, 6: 5e-6, 8: 1e-6,
+#             10: 5e-7, 15: 1e-7, 20: 5e-8
+#         }
+#     if epoch in lr_adjust.keys():
+#         lr = lr_adjust[epoch]
+#         for param_group in optimizer.param_groups:
+#             param_group['lr'] = lr
+#         print('Updating learning rate to {}'.format(lr))
+
+
 def adjust_learning_rate(optimizer, scheduler, epoch, args, printout=True):
     """
     Adjusts the learning rate based on the specified strategy in args.lradj.
@@ -156,23 +173,14 @@ class StandardScaler:
 
 def visual(true, preds=None, name='./pic/test.pdf'):
     """
-    Visualizes the true and predicted values and saves the plot.
-
-    Args:
-        true (np.array): Ground truth values.
-        preds (np.array, optional): Predicted values. Defaults to None.
-        name (str, optional): Path to save the plot. Defaults to './pic/test.pdf'.
+    Results visualization
     """
-    plt.figure(figsize=(10, 6))
-    plt.plot(true, label='GroundTruth', linewidth=2, color='dodgerblue')
+    plt.figure()
+    plt.plot(true, label='GroundTruth', linewidth=2)
     if preds is not None:
-        plt.plot(preds, label='Prediction', linewidth=2, color='orange')
+        plt.plot(preds, label='Prediction', linewidth=2)
     plt.legend()
-    plt.title('Time Series Prediction')
-    plt.xlabel('Time Steps')
-    plt.ylabel('Value')
     plt.savefig(name, bbox_inches='tight')
-    plt.close()
 
 
 def adjustment(gt, pred):

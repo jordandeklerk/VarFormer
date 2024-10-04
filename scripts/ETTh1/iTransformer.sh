@@ -3,7 +3,7 @@ python3 run.py \
 --model_id ETTh1_96_96 \
 --model iTransformer \
 --data custom \
---features M \
+--features S \
 --seq_len 96 \
 --label_len 24 \
 --pred_len 96 \
@@ -23,7 +23,7 @@ python3 run.py \
 --model_id ETTh1_96_192 \
 --model iTransformer \
 --data custom \
---features M \
+--features S \
 --seq_len 96 \
 --label_len 24 \
 --pred_len 192 \
@@ -43,7 +43,7 @@ python3 run.py \
 --model_id ETTh1_96_336 \
 --model iTransformer \
 --data custom \
---features M \
+--features S \
 --seq_len 96 \
 --label_len 24 \
 --pred_len 336 \
@@ -63,7 +63,7 @@ python3 run.py \
 --model_id ETTh1_96_720 \
 --model iTransformer \
 --data custom \
---features M \
+--features S \
 --seq_len 96 \
 --label_len 24 \
 --pred_len 720 \
@@ -83,7 +83,7 @@ python3 run.py \
 --model_id ETTh1_192_96 \
 --model iTransformer \
 --data custom \
---features M \
+--features S \
 --seq_len 192 \
 --label_len 24 \
 --pred_len 96 \
@@ -103,7 +103,7 @@ python3 run.py \
 --model_id ETTh1_192_192 \
 --model iTransformer \
 --data custom \
---features M \
+--features S \
 --seq_len 192 \
 --label_len 24 \
 --pred_len 192 \
@@ -123,7 +123,7 @@ python3 run.py \
 --model_id ETTh1_192_336 \
 --model iTransformer \
 --data custom \
---features M \
+--features S \
 --seq_len 192 \
 --label_len 24 \
 --pred_len 336 \
@@ -143,7 +143,7 @@ python3 run.py \
 --model_id ETTh1_192_720 \
 --model iTransformer \
 --data custom \
---features M \
+--features S \
 --seq_len 192 \
 --label_len 24 \
 --pred_len 720 \
@@ -163,7 +163,7 @@ python3 run.py \
 --model_id ETTh1_336_96 \
 --model iTransformer \
 --data custom \
---features M \
+--features S \
 --seq_len 336 \
 --label_len 24 \
 --pred_len 96 \
@@ -183,7 +183,7 @@ python3 run.py \
 --model_id ETTh1_336_192 \
 --model iTransformer \
 --data custom \
---features M \
+--features S \
 --seq_len 336 \
 --label_len 24 \
 --pred_len 192 \
@@ -203,7 +203,7 @@ python3 run.py \
 --model_id ETTh1_336_336 \
 --model iTransformer \
 --data custom \
---features M \
+--features S \
 --seq_len 336 \
 --label_len 24 \
 --pred_len 336 \
@@ -223,7 +223,7 @@ python3 run.py \
 --model_id ETTh1_336_720 \
 --model iTransformer \
 --data custom \
---features M \
+--features S \
 --seq_len 336 \
 --label_len 24 \
 --pred_len 720 \
@@ -237,4 +237,3 @@ python3 run.py \
 --itr 1 \
 --train_epochs 10 \
 --batch_size 256 \
-
