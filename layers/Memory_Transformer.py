@@ -7,6 +7,7 @@ from torch import nn, Tensor
 from .Embed import *
 from .Memory_Attention import *
 
+
 class PositionwiseFeedForward(nn.Module):
     """
     Implements a position-wise feedforward network.
