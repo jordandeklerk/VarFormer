@@ -140,55 +140,32 @@ class RevIN(nn.Module):
 
 class ResidualBlock(nn.Module):
     """
-    Residual Block module consisting of two linear layers with a LeakyReLU activation.
-
-    This block adds the input to the output of a sequence of linear transformations,
-    enabling residual connections that help in training deep networks.
-
-    Args:
-        in_features (int): Number of input and output features.
-
-    Attributes:
-        block (nn.Sequential): Sequential container of linear layers and activations.
+    Residual Block module with Dropout.
+    
+    Enhancements:
+        - Incorporated Dropout for regularization.
+        - Implemented Residual Scaling to stabilize training.
     """
-    def __init__(self, in_features):
+    def __init__(self, in_features, dropout_rate=0.1, scale=0.1):
         super().__init__()
         self.block = nn.Sequential(
             nn.Linear(in_features, in_features),
             nn.LeakyReLU(),
             nn.Linear(in_features, in_features)
         )
-
+        self.scale = scale
+        self.activation = nn.LeakyReLU()
+        self.dropout = nn.Dropout(p=dropout_rate)
+    
     def forward(self, x):
-        """
-        Forward pass for the Residual Block.
-
-        Args:
-            x (torch.Tensor): Input tensor of shape (batch_size, in_features).
-
-        Returns:
-            torch.Tensor: Output tensor after adding the residual connection.
-        """
-        return x + self.block(x)
+        out = self.block(x)
+        out = self.dropout(out)
+        return self.activation(x + self.scale * out)
 
 
 class Encoder(nn.Module):
     """
-    Encoder module for the autoencoder architecture.
-
-    Processes historical sequences and prediction parameters to generate a latent representation.
-
-    Args:
-        params (Namespace): Configuration parameters containing model dimensions and sequence lengths.
-        revin (RevIN): Instance of the RevIN module for input normalization.
-
-    Attributes:
-        revin (RevIN): Reversible Instance Normalization module.
-        params (Namespace): Model configuration parameters.
-        his_dim (int): Dimension of the flattened historical input.
-        his_proj (nn.Linear): Linear layer projecting historical input to intermediate dimension.
-        pred_proj (nn.Linear): Linear layer projecting prediction parameters to intermediate dimension.
-        encoder_common (nn.Sequential): Sequential container of linear layers and residual blocks for encoding.
+    Encoder module.
     """
     def __init__(self, params, revin):
         super().__init__()
@@ -199,29 +176,27 @@ class Encoder(nn.Module):
         self.his_proj = nn.Linear(self.his_dim, params.inter_dim // 2)
         self.pred_proj = nn.Linear(params.c_in * 2, params.inter_dim // 2)
 
+        hidden_dim = params.inter_dim
+
         self.encoder_common = nn.Sequential(
-            nn.Linear(params.inter_dim, params.inter_dim),
+            nn.Linear(params.inter_dim, hidden_dim),
             nn.LeakyReLU(),
-            ResidualBlock(params.inter_dim),
+            ResidualBlock(hidden_dim, dropout_rate=0.2),
             nn.LeakyReLU(),
-            ResidualBlock(params.inter_dim),
+            ResidualBlock(hidden_dim, dropout_rate=0.2),
             nn.LeakyReLU(),
-            ResidualBlock(params.inter_dim),
-            nn.LeakyReLU(),
-            nn.Linear(params.inter_dim, params.latent_dim * 2)
+            nn.Linear(hidden_dim, params.latent_dim * 2)
         )
 
     def forward(self, his_seq, pred_mu, pred_sigma):
         """
         Forward pass for the Encoder.
-
-        Combines historical sequence and prediction parameters to produce latent mean and log variance.
-
+        
         Args:
             his_seq (torch.Tensor): Historical sequence tensor of shape (batch_size, seq_len, c_in).
             pred_mu (torch.Tensor): Prediction mean tensor of shape (batch_size, pred_len, c_in).
             pred_sigma (torch.Tensor): Prediction standard deviation tensor of shape (batch_size, pred_len, c_in).
-
+        
         Returns:
             torch.Tensor: Encoded tensor containing concatenated mean and log variance of the latent space.
         """
@@ -243,23 +218,7 @@ class Encoder(nn.Module):
 
 class Decoder(nn.Module):
     """
-    Decoder module for the autoencoder architecture.
-
-    Reconstructs the sequence from the latent representation, separating it into trend and seasonal components.
-
-    Args:
-        params (Namespace): Configuration parameters containing model dimensions and sequence lengths.
-        revin (RevIN): Instance of the RevIN module for input normalization.
-
-    Attributes:
-        revin (RevIN): Reversible Instance Normalization module.
-        params (Namespace): Model configuration parameters.
-        his_dim (int): Dimension of the flattened historical input.
-        his_proj (nn.Linear): Linear layer projecting historical input to latent dimension.
-        decoder_common (nn.Sequential): Sequential container of linear layers and residual blocks for decoding.
-        shared_layer (nn.Sequential): Shared residual layers for trend and season projections.
-        season_proj (nn.Sequential): Sequential container for projecting to seasonal components.
-        trend_proj (nn.Sequential): Sequential container for projecting to trend components.
+    Decoder module.
     """
     def __init__(self, params, revin):
         super().__init__()
@@ -274,18 +233,14 @@ class Decoder(nn.Module):
         self.decoder_common = nn.Sequential(
             nn.Linear(input_dim, hidden_dim),
             nn.LeakyReLU(),
-            ResidualBlock(hidden_dim),
+            ResidualBlock(hidden_dim, dropout_rate=0.2),
             nn.LeakyReLU(),
-            ResidualBlock(hidden_dim),
-            nn.LeakyReLU(),
-            ResidualBlock(hidden_dim),
+            ResidualBlock(hidden_dim, dropout_rate=0.2),
             nn.LeakyReLU()
         )
 
         self.shared_layer = nn.Sequential(
-            ResidualBlock(hidden_dim),
-            nn.LeakyReLU(),
-            ResidualBlock(hidden_dim),
+            ResidualBlock(hidden_dim, dropout_rate=0.2),
             nn.LeakyReLU()
         )
 
@@ -304,13 +259,11 @@ class Decoder(nn.Module):
     def forward(self, hidden_z, his_seq):
         """
         Forward pass for the Decoder.
-
-        Reconstructs the sequence from the latent representation and historical sequence.
-
+        
         Args:
             hidden_z (torch.Tensor): Latent representation tensor of shape (batch_size, latent_dim).
             his_seq (torch.Tensor): Historical sequence tensor of shape (batch_size, seq_len, c_in).
-
+        
         Returns:
             Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
                 - Reconstructed sequence of shape (batch_size, pred_len, c_in).
