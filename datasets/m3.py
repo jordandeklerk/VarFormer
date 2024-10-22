@@ -23,8 +23,8 @@ import fire
 import numpy as np
 import pandas as pd
 
-from common.http_utils import download, url_file_name
-from common.settings import DATASETS_PATH
+from ..common.http_utils import download, url_file_name
+from ..common.settings import DATASETS_PATH
 
 DATASET_URL = 'https://forecasters.org/data/m3comp/M3C.xls'
 FORECASTS_URL = 'https://forecasters.org/data/m3comp/M3Forecast.xls'

@@ -26,8 +26,8 @@ import pandas as pd
 import patoolib
 from tqdm import tqdm
 
-from common.http_utils import download, url_file_name
-from common.settings import DATASETS_PATH
+from ..common.http_utils import download, url_file_name
+from ..common.settings import DATASETS_PATH
 
 FREQUENCIES = ['Hourly', 'Daily', 'Weekly', 'Monthly', 'Quarterly', 'Yearly']
 URL_TEMPLATE = 'https://github.com/Mcompetitions/M4-methods/raw/master/Dataset/{}/{}-{}.csv'
