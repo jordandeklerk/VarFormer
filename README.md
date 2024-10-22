@@ -1,2 +1,2 @@
-# BayesFormer
+# VarFormer
 WORK IN PROGRESS
