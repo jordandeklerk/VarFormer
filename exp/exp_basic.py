@@ -1,6 +1,6 @@
 import os
 import torch
-from models import BayesFormer, ATFNet, Autoformer, TimesNet, DLinear, FEDformer, \
+from models import VarFormer, ATFNet, Autoformer, TimesNet, DLinear, FEDformer, \
     Informer, PatchTST, FreTS, FITS, TFDNet, \
    Crossformer, FiLM, SCINet, iTransformer \
      
@@ -8,7 +8,7 @@ class Exp_Basic(object):
     def __init__(self, args):
         self.args = args
         self.model_dict = {
-            'BayesFormer': BayesFormer,
+            'VarFormer': VarFormer,
             'TimesNet': TimesNet,
             'Autoformer': Autoformer,
             'DLinear': DLinear,

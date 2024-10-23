@@ -4,8 +4,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch import nn, Tensor
 
-from .Embed import *
-from .Memory_Attention import *
+from Embed import *
+from Memory_Attention import *
 
 
 class PositionwiseFeedForward(nn.Module):
