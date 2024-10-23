@@ -9,14 +9,7 @@ from Memory_Attention import *
 
 
 class PositionwiseFeedForward(nn.Module):
-    """
-    Implements a position-wise feedforward network.
-
-    Args:
-        d_model (int): Dimension of the input and output.
-        d_ff (int): Dimension of the hidden layer.
-        dropout (float, optional): Dropout probability. Defaults to 0.1.
-    """
+    """Position-wise feedforward network with linear transformations and ReLU activation."""
 
     def __init__(self, d_model: int, d_ff: int, dropout: float = 0.1):
         super().__init__()
@@ -25,28 +18,12 @@ class PositionwiseFeedForward(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x: Tensor) -> Tensor:
-        """
-        Applies the feedforward network to the input tensor.
-
-        Args:
-            x (Tensor): Input tensor of shape (batch, seq_len, d_model).
-
-        Returns:
-            Tensor: Output tensor after applying the feedforward network.
-        """
+        """Applies feedforward network to input tensor."""
         return self.w_2(self.dropout(F.relu(self.w_1(x))))
 
 
 class EncoderLayer(nn.Module):
-    """
-    Defines a single layer of the Transformer encoder.
-
-    Args:
-        d_model (int): Dimension of the input and output.
-        d_ff (int): Dimension of the feedforward network.
-        n_heads (int): Number of attention heads.
-        dropout (float, optional): Dropout probability. Defaults to 0.1.
-    """
+    """Single layer of the Transformer encoder with self-attention and feedforward network."""
 
     def __init__(self, d_model: int, d_ff: int, n_heads: int, dropout: float = 0.1):
         super().__init__()
@@ -57,16 +34,7 @@ class EncoderLayer(nn.Module):
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x: Tensor, src_mask: Optional[Tensor] = None) -> Tensor:
-        """
-        Forward pass for the encoder layer.
-
-        Args:
-            x (Tensor): Input tensor of shape (batch, seq_len, d_model).
-            src_mask (Optional[Tensor], optional): Source attention mask. Defaults to None.
-
-        Returns:
-            Tensor: Output tensor after applying self-attention and feedforward network.
-        """
+        """Processes input through self-attention and feedforward network."""
         attn_output = self.self_attn(x, x, x)
         x = self.norm1(x + self.dropout(attn_output))
         ff_output = self.feed_forward(x)
@@ -74,15 +42,7 @@ class EncoderLayer(nn.Module):
 
 
 class DecoderLayer(nn.Module):
-    """
-    Defines a single layer of the Transformer decoder with memory attention.
-
-    Args:
-        d_model (int): Dimension of the input and output.
-        d_ff (int): Dimension of the feedforward network.
-        n_heads (int): Number of attention heads.
-        dropout (float, optional): Dropout probability. Defaults to 0.1.
-    """
+    """Single layer of the Transformer decoder with self and cross memory attention."""
 
     def __init__(self, d_model: int, d_ff: int, n_heads: int, dropout: float = 0.1):
         super().__init__()
@@ -112,35 +72,14 @@ class DecoderLayer(nn.Module):
         self.norm2 = nn.LayerNorm(d_model)
 
     def forward(self, x: Tensor, memory: Tensor, src_pos: Optional[Tensor] = None, tgt_pos: Optional[Tensor] = None, tgt_mask: Optional[Tensor] = None) -> Tensor:
-        """
-        Forward pass for the decoder layer.
-
-        Args:
-            x (Tensor): Input tensor of shape (batch, tgt_seq_len, d_model).
-            memory (Tensor): Memory tensor from the encoder of shape (batch, src_seq_len, d_model).
-            src_pos (Optional[Tensor], optional): Positional encoding for source memory. Defaults to None.
-            tgt_pos (Optional[Tensor], optional): Positional encoding for target queries. Defaults to None.
-            tgt_mask (Optional[Tensor], optional): Attention mask for the target. Defaults to None.
-
-        Returns:
-            Tensor: Output tensor after applying memory attention.
-        """
+        """Processes input through self and cross memory attention."""
         x = self.norm1(self.self_memory_attention(x, x, pos=tgt_pos, query_pos=tgt_pos, tgt_mask=tgt_mask))
         x = self.norm2(self.cross_memory_attention(x, memory, pos=src_pos, query_pos=tgt_pos))
         return x
 
 
 class Encoder(nn.Module):
-    """
-    Transformer encoder composed of multiple encoder layers.
-
-    Args:
-        d_model (int): Dimension of the input and output.
-        d_ff (int): Dimension of the feedforward network.
-        n_heads (int): Number of attention heads.
-        n_layers (int): Number of encoder layers.
-        dropout (float): Dropout probability.
-    """
+    """Stack of Transformer encoder layers."""
 
     def __init__(self, d_model: int, d_ff: int, n_heads: int, n_layers: int, dropout: float):
         super().__init__()
@@ -148,31 +87,14 @@ class Encoder(nn.Module):
         self.norm = nn.LayerNorm(d_model)
 
     def forward(self, x: Tensor) -> Tensor:
-        """
-        Forward pass for the encoder.
-
-        Args:
-            x (Tensor): Input tensor of shape (batch, seq_len, d_model).
-
-        Returns:
-            Tensor: Output tensor after passing through all encoder layers and normalization.
-        """
+        """Processes input through all encoder layers."""
         for layer in self.layers:
             x = layer(x)
         return self.norm(x)
 
 
 class Decoder(nn.Module):
-    """
-    Transformer decoder composed of multiple decoder layers.
-
-    Args:
-        d_model (int): Dimension of the input and output.
-        d_ff (int): Dimension of the feedforward network.
-        n_heads (int): Number of attention heads.
-        n_layers (int): Number of decoder layers.
-        dropout (float): Dropout probability.
-    """
+    """Stack of Transformer decoder layers."""
 
     def __init__(self, d_model: int, d_ff: int, n_heads: int, n_layers: int, dropout: float):
         super().__init__()
@@ -180,43 +102,14 @@ class Decoder(nn.Module):
         self.norm = nn.LayerNorm(d_model)
 
     def forward(self, x: Tensor, memory: Tensor, src_pos: Optional[Tensor] = None, tgt_pos: Optional[Tensor] = None, tgt_mask: Optional[Tensor] = None) -> Tensor:
-        """
-        Forward pass for the decoder.
-
-        Args:
-            x (Tensor): Input tensor of shape (batch, tgt_seq_len, d_model).
-            memory (Tensor): Memory tensor from the encoder of shape (batch, src_seq_len, d_model).
-            src_pos (Optional[Tensor], optional): Positional encoding for source memory. Defaults to None.
-            tgt_pos (Optional[Tensor], optional): Positional encoding for target queries. Defaults to None.
-            tgt_mask (Optional[Tensor], optional): Attention mask for the target. Defaults to None.
-
-        Returns:
-            Tensor: Output tensor after passing through all decoder layers and normalization.
-        """
+        """Processes input through all decoder layers."""
         for layer in self.layers:
             x = layer(x, memory, src_pos, tgt_pos, tgt_mask)
         return self.norm(x)
 
 
 class TransformerModel(nn.Module):
-    """
-    Transformer-based model for sequence-to-sequence tasks with forecasting capabilities.
-
-    Args:
-        params: A parameter object containing model configurations such as:
-                - c_in: Number of input channels.
-                - d_model: Dimension of the embeddings.
-                - embed_type: Type of embedding ('fixed', 'learnable', or 'timeF').
-                - freq: Frequency type ('h', 't', etc.).
-                - dropout: Dropout probability.
-                - d_ff: Dimension of the feedforward network.
-                - n_heads: Number of attention heads.
-                - e_layers: Number of encoder layers.
-                - d_layers: Number of decoder layers.
-                - c_out: Number of output channels.
-                - pred_len: Prediction length.
-                - seq_len: Sequence length.
-    """
+    """Transformer-based sequence-to-sequence model with forecasting capabilities."""
 
     def __init__(self, params):
         super().__init__()
@@ -233,34 +126,13 @@ class TransformerModel(nn.Module):
         self.positional_embedding = PositionalEmbedding(params.d_model)
 
     def create_causal_mask(self, sz: int) -> Tensor:
-        """
-        Creates a causal mask for autoregressive decoding to prevent attention to future positions.
-
-        Args:
-            sz (int): Size of the mask (sequence length).
-
-        Returns:
-            Tensor: Causal mask tensor of shape (1, sz, sz).
-        """
+        """Creates causal mask for autoregressive decoding."""
         mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
         mask = mask.float().masked_fill(mask == 0, float('-inf')).masked_fill(mask == 1, float(0.0))
         return mask.unsqueeze(0)  # Add batch dimension
 
     def forward(self, src: Tensor, src_mark: Tensor, tgt: Tensor, tgt_mark: Tensor) -> Tuple[Tensor, Tensor]:
-        """
-        Forward pass for the Transformer model.
-
-        Args:
-            src (Tensor): Source input tensor of shape (batch, src_seq_len, c_in).
-            src_mark (Tensor): Source temporal features of shape (batch, src_seq_len, features).
-            tgt (Tensor): Target input tensor of shape (batch, tgt_seq_len, c_in).
-            tgt_mark (Tensor): Target temporal features of shape (batch, tgt_seq_len, features).
-
-        Returns:
-            Tuple[Tensor, Tensor]: 
-                - mu: Predicted mean tensor of shape (batch, tgt_seq_len, c_out).
-                - sigma: Predicted variance tensor of shape (batch, tgt_seq_len, c_out).
-        """
+        """Processes input through encoder and decoder to generate predictions."""
         B, L = src.shape[0], src.shape[1]
         S = tgt.shape[1]
         device = src.device
@@ -281,20 +153,7 @@ class TransformerModel(nn.Module):
         return mu, sigma
 
     def forecast(self, src: Tensor, src_mark: Tensor, tgt: Tensor, tgt_mark: Tensor) -> Tuple[Tensor, Tensor]:
-        """
-        Generates forecasts by iteratively predicting future time steps.
-
-        Args:
-            src (Tensor): Source input tensor of shape (batch, src_seq_len, c_in).
-            src_mark (Tensor): Source temporal features of shape (batch, src_seq_len, features).
-            tgt (Tensor): Target input tensor of shape (batch, tgt_seq_len, c_in).
-            tgt_mark (Tensor): Target temporal features of shape (batch, tgt_seq_len, features).
-
-        Returns:
-            Tuple[Tensor, Tensor]: 
-                - mu: Forecasted mean tensor of shape (batch, pred_len, c_out).
-                - sigma: Forecasted variance tensor of shape (batch, pred_len, c_out).
-        """
+        """Generates forecasts by iteratively predicting future time steps."""
         B, L = src.shape[0], src.shape[1]
         S = tgt.shape[1]
         device = src.device

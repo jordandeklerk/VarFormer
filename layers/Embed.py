@@ -6,6 +6,7 @@ import math
 
 
 class PositionalEmbedding(nn.Module):
+    """Module that adds positional encoding to input embeddings."""
     def __init__(self, d_model, max_len=5000):
         super(PositionalEmbedding, self).__init__()
         # Compute the positional encodings once in log space.
@@ -27,6 +28,7 @@ class PositionalEmbedding(nn.Module):
 
 
 class TokenEmbedding(nn.Module):
+    """Module that converts input tokens into embeddings using 1D convolution."""
     def __init__(self, c_in, d_model):
         super(TokenEmbedding, self).__init__()
         padding = 1 if torch.__version__ >= '1.5.0' else 2
@@ -43,6 +45,7 @@ class TokenEmbedding(nn.Module):
 
 
 class FixedEmbedding(nn.Module):
+    """Module that provides fixed (non-trainable) positional embeddings."""
     def __init__(self, c_in, d_model):
         super(FixedEmbedding, self).__init__()
 
@@ -64,6 +67,7 @@ class FixedEmbedding(nn.Module):
 
 
 class TemporalEmbedding(nn.Module):
+    """Module that combines embeddings for different time features (minute, hour, weekday, day, month)."""
     def __init__(self, d_model, embed_type='fixed', freq='h'):
         super(TemporalEmbedding, self).__init__()
 
@@ -94,6 +98,7 @@ class TemporalEmbedding(nn.Module):
 
 
 class TimeFeatureEmbedding(nn.Module):
+    """Module that embeds time features using a linear transformation."""
     def __init__(self, d_model, embed_type='timeF', freq='h'):
         super(TimeFeatureEmbedding, self).__init__()
 
@@ -107,6 +112,7 @@ class TimeFeatureEmbedding(nn.Module):
 
 
 class DataEmbedding(nn.Module):
+    """Module that combines value, position, and temporal embeddings."""
     def __init__(self, c_in, d_model, embed_type='fixed', freq='h', dropout=0.1):
         super(DataEmbedding, self).__init__()
 
@@ -127,6 +133,7 @@ class DataEmbedding(nn.Module):
 
 
 class DataEmbedding_inverted(nn.Module):
+    """Module that provides inverted data embedding using linear transformation."""
     def __init__(self, c_in, d_model, embed_type='fixed', freq='h', dropout=0.1):
         super(DataEmbedding_inverted, self).__init__()
         self.value_embedding = nn.Linear(c_in, d_model)
@@ -144,6 +151,7 @@ class DataEmbedding_inverted(nn.Module):
 
 
 class DataEmbedding_wo_pos(nn.Module):
+    """Module that combines value and temporal embeddings without positional encoding."""
     def __init__(self, c_in, d_model, embed_type='fixed', freq='h', dropout=0.1):
         super(DataEmbedding_wo_pos, self).__init__()
 
@@ -163,6 +171,7 @@ class DataEmbedding_wo_pos(nn.Module):
 
 
 class PatchEmbedding(nn.Module):
+    """Module that creates and embeds patches from input sequences."""
     def __init__(self, d_model, patch_len, stride, padding, dropout):
         super(PatchEmbedding, self).__init__()
         # Patching
