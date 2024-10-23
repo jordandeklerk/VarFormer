@@ -1,7 +1,7 @@
 python3 run.py \
---data_path ETTm1.csv \
---model_id ETTm1_336_96 \
---model BayesFormer \
+--data_path ETTh2.csv \
+--model_id ETTh2_336_96 \
+--model VarFormer \
 --data custom \
 --features M \
 --seq_len 336 \
@@ -21,7 +21,7 @@ python3 run.py \
 --c_out 7 \
 --nvars 7 \
 --input_dim 7 \
---freq t \
+--freq h \
 --des Exp \
 --itr 1 \
 --train_epochs 20 \
@@ -29,9 +29,9 @@ python3 run.py \
 --patience 7 \
 
 python3 run.py \
---data_path ETTm1.csv \
---model_id ETTm1_336_192 \
---model BayesFormer \
+--data_path ETTh2.csv \
+--model_id ETTh2_336_192 \
+--model VarFormer \
 --data custom \
 --features M \
 --seq_len 336 \
@@ -51,7 +51,7 @@ python3 run.py \
 --c_out 7 \
 --nvars 7 \
 --input_dim 7 \
---freq t \
+--freq h \
 --des Exp \
 --itr 1 \
 --train_epochs 20 \
@@ -59,9 +59,9 @@ python3 run.py \
 --patience 7 \
 
 python3 run.py \
---data_path ETTm1.csv \
---model_id ETTm1_336_336 \
---model BayesFormer \
+--data_path ETTh2.csv \
+--model_id ETTh2_336_336 \
+--model VarFormer \
 --data custom \
 --features M \
 --seq_len 336 \
@@ -81,7 +81,7 @@ python3 run.py \
 --c_out 7 \
 --nvars 7 \
 --input_dim 7 \
---freq t \
+--freq h \
 --des Exp \
 --itr 1 \
 --train_epochs 20 \
@@ -89,9 +89,9 @@ python3 run.py \
 --patience 7 \
 
 python3 run.py \
---data_path ETTm1.csv \
---model_id ETTm1_336_720 \
---model BayesFormer \
+--data_path ETTh2.csv \
+--model_id ETTh2_336_720 \
+--model VarFormer \
 --data custom \
 --features M \
 --seq_len 336 \
@@ -111,7 +111,7 @@ python3 run.py \
 --c_out 7 \
 --nvars 7 \
 --input_dim 7 \
---freq t \
+--freq h \
 --des Exp \
 --itr 1 \
 --train_epochs 20 \

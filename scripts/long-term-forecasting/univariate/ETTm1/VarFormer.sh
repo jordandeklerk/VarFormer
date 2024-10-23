@@ -1,7 +1,7 @@
 python3 run.py \
---data_path ETTm2.csv \
---model_id ETTm2_336_96 \
---model BayesFormer \
+--data_path ETTm1.csv \
+--model_id ETTm1_336_96 \
+--model VarFormer \
 --data custom \
 --features S \
 --seq_len 336 \
@@ -29,9 +29,9 @@ python3 run.py \
 --patience 7 \
 
 python3 run.py \
---data_path ETTm2.csv \
---model_id ETTm2_336_192 \
---model BayesFormer \
+--data_path ETTm1.csv \
+--model_id ETTm1_336_192 \
+--model VarFormer \
 --data custom \
 --features S \
 --seq_len 336 \
@@ -59,9 +59,9 @@ python3 run.py \
 --patience 7 \
 
 python3 run.py \
---data_path ETTm2.csv \
---model_id ETTm2_336_336 \
---model BayesFormer \
+--data_path ETTm1.csv \
+--model_id ETTm1_336_336 \
+--model VarFormer \
 --data custom \
 --features S \
 --seq_len 336 \
@@ -89,9 +89,9 @@ python3 run.py \
 --patience 7 \
 
 python3 run.py \
---data_path ETTm2.csv \
---model_id ETTm2_336_720 \
---model BayesFormer \
+--data_path ETTm1.csv \
+--model_id ETTm1_336_720 \
+--model VarFormer \
 --data custom \
 --features S \
 --seq_len 336 \
