@@ -9,8 +9,8 @@ import fire
 import numpy as np
 import pandas as pd
 
-from ..common.http_utils import download, url_file_name
-from ..common.settings import DATASETS_PATH
+from common.http_utils import download, url_file_name
+from common.settings import DATASETS_PATH
 
 DATASET_URL = 'https://forecasters.org/data/m3comp/M3C.xls'
 FORECASTS_URL = 'https://forecasters.org/data/m3comp/M3Forecast.xls'
@@ -76,8 +76,11 @@ class M3Dataset:
         """
         Download M3 dataset if doesn't exist.
         """
-        if os.path.isdir(DATASET_PATH):
-            logging.info(f'skip: {DATASET_PATH} directory already exists.')
+        if not os.path.exists(DATASET_PATH):
+            os.makedirs(DATASET_PATH)
+        
+        if os.path.exists(TRAINING_SET_CACHE_FILE_PATH) and os.path.exists(TEST_SET_CACHE_FILE_PATH):
+            logging.info(f'skip: {DATASET_PATH} cache files already exist.')
             return
 
         download(DATASET_URL, DATASET_FILE_PATH)
@@ -92,17 +95,35 @@ class M3Dataset:
         for sp in M3Meta.seasonal_patterns:
             horizon = M3Meta.horizons_map[sp]
             dataset = pd.read_excel(DATASET_FILE_PATH, sheet_name=sp)
-            ids.extend(dataset[['Series']].values[:, 0])
-            horizons.extend(dataset['NF'].values)
-            groups.extend(np.array([sp] * len(dataset)))
-            training_values.extend([ts[~np.isnan(ts)][:-horizon] for ts in dataset[dataset.columns[6:]].values])
-            test_values.extend([ts[~np.isnan(ts)][-horizon:] for ts in dataset[dataset.columns[6:]].values])
+            
+            # Process each time series
+            for idx, row in dataset.iterrows():
+                # Convert series to numeric values and handle NaN
+                series = pd.to_numeric(row[dataset.columns[6:]], errors='coerce').values
+                series = series[pd.notna(series)]  # Remove NaN values
+                
+                if len(series) > horizon:  # Only include if we have enough data
+                    ids.append(row['Series'])
+                    horizons.append(row['NF'])
+                    groups.append(sp)
+                    training_values.append(series[:-horizon])
+                    test_values.append(series[-horizon:])
 
-        np.save(IDS_CACHE_FILE_PATH, ids, allow_pickle=True)
-        np.save(GROUPS_CACHE_FILE_PATH, groups, allow_pickle=True)
-        np.save(HORIZONS_CACHE_FILE_PATH, horizons, allow_pickle=True)
-        np.save(TRAINING_SET_CACHE_FILE_PATH, training_values, allow_pickle=True)
-        np.save(TEST_SET_CACHE_FILE_PATH, test_values, allow_pickle=True)
+        # Save processed data
+        os.makedirs(os.path.dirname(TRAINING_SET_CACHE_FILE_PATH), exist_ok=True)
+        
+        # Convert lists to arrays and save
+        np.save(IDS_CACHE_FILE_PATH, np.array(ids), allow_pickle=True)
+        np.save(GROUPS_CACHE_FILE_PATH, np.array(groups), allow_pickle=True)
+        np.save(HORIZONS_CACHE_FILE_PATH, np.array(horizons), allow_pickle=True)
+        np.save(TRAINING_SET_CACHE_FILE_PATH, np.array(training_values, dtype=object), allow_pickle=True)
+        np.save(TEST_SET_CACHE_FILE_PATH, np.array(test_values, dtype=object), allow_pickle=True)
+
+        # Save CSV versions for easier access
+        train_df = pd.DataFrame(training_values)
+        test_df = pd.DataFrame(test_values)
+        train_df.to_csv(os.path.join(DATASET_PATH, 'Monthly-train.csv'), index=False)
+        test_df.to_csv(os.path.join(DATASET_PATH, 'Monthly-test.csv'), index=False)
 
 
 if __name__ == '__main__':

@@ -12,8 +12,8 @@ import pandas as pd
 import patoolib
 from tqdm import tqdm
 
-from ..common.http_utils import download, url_file_name
-from ..common.settings import DATASETS_PATH
+from common.http_utils import download, url_file_name
+from common.settings import DATASETS_PATH
 
 FREQUENCIES = ['Hourly', 'Daily', 'Weekly', 'Monthly', 'Quarterly', 'Yearly']
 URL_TEMPLATE = 'https://github.com/Mcompetitions/M4-methods/raw/master/Dataset/{}/{}-{}.csv'
@@ -21,15 +21,12 @@ URL_TEMPLATE = 'https://github.com/Mcompetitions/M4-methods/raw/master/Dataset/{
 TRAINING_DATASET_URLS = [URL_TEMPLATE.format("Train", freq, "train") for freq in FREQUENCIES]
 TEST_DATASET_URLS = [URL_TEMPLATE.format("Test", freq, "test") for freq in FREQUENCIES]
 INFO_URL = 'https://github.com/Mcompetitions/M4-methods/raw/master/Dataset/M4-info.csv'
-NAIVE2_FORECAST_URL = 'https://github.com/M4Competition/M4-methods/raw/master/Point%20Forecasts/submission-Naive2.rar'
 
 DATASET_PATH = os.path.join(DATASETS_PATH, 'm4')
 
 TRAINING_DATASET_FILE_PATHS = [os.path.join(DATASET_PATH, url_file_name(url)) for url in TRAINING_DATASET_URLS]
 TEST_DATASET_FILE_PATHS = [os.path.join(DATASET_PATH, url_file_name(url)) for url in TEST_DATASET_URLS]
 INFO_FILE_PATH = os.path.join(DATASET_PATH, url_file_name(INFO_URL))
-NAIVE2_FORECAST_FILE_PATH = os.path.join(DATASET_PATH, 'submission-Naive2.csv')
-
 
 TRAINING_DATASET_CACHE_FILE_PATH = os.path.join(DATASET_PATH, 'training.npz')
 TEST_DATASET_CACHE_FILE_PATH = os.path.join(DATASET_PATH, 'test.npz')
@@ -64,35 +61,65 @@ class M4Dataset:
         """
         Download M4 dataset if doesn't exist.
         """
-        if os.path.isdir(DATASET_PATH):
-            logging.info(f'skip: {DATASET_PATH} directory already exists.')
-            return
+        if not os.path.exists(DATASET_PATH):
+            os.makedirs(DATASET_PATH)
 
+        # Download info file
         download(INFO_URL, INFO_FILE_PATH)
-        m4_ids = pd.read_csv(INFO_FILE_PATH).M4id.values
+        m4_info = pd.read_csv(INFO_FILE_PATH)
+        m4_ids = m4_info.M4id.values
 
-        def build_cache(files: str, cache_path: str) -> None:
-            timeseries_dict = OrderedDict(list(zip(m4_ids, [[]] * len(m4_ids))))
-            logging.info(f'Caching {files}')
-            for train_csv in tqdm(glob(os.path.join(DATASET_PATH, files))):
-                dataset = pd.read_csv(train_csv)
-                dataset.set_index(dataset.columns[0], inplace=True)
-                for m4id, row in dataset.iterrows():
-                    values = row.values
-                    timeseries_dict[m4id] = values[~np.isnan(values)]
-            np.array(list(timeseries_dict.values())).dump(cache_path)
-
-        for url, path in zip(TRAINING_DATASET_URLS, TRAINING_DATASET_FILE_PATHS):
+        # Process training data
+        all_training_data = []
+        for freq, url, path in zip(FREQUENCIES, TRAINING_DATASET_URLS, TRAINING_DATASET_FILE_PATHS):
+            logging.info(f'Downloading {freq} training data...')
             download(url, path)
-        build_cache('*-train.csv', TRAINING_DATASET_CACHE_FILE_PATH)
-
-        for url, path in zip(TEST_DATASET_URLS, TEST_DATASET_FILE_PATHS):
+            df = pd.read_csv(path)
+            all_training_data.append(df)
+        
+        # Combine all training data
+        combined_train = pd.concat(all_training_data, axis=0)
+        combined_train.to_csv(os.path.join(DATASET_PATH, 'Monthly-train.csv'), index=False)
+        
+        # Process test data
+        all_test_data = []
+        for freq, url, path in zip(FREQUENCIES, TEST_DATASET_URLS, TEST_DATASET_FILE_PATHS):
+            logging.info(f'Downloading {freq} test data...')
             download(url, path)
-        build_cache('*-test.csv', TEST_DATASET_CACHE_FILE_PATH)
+            df = pd.read_csv(path)
+            all_test_data.append(df)
+        
+        # Combine all test data
+        combined_test = pd.concat(all_test_data, axis=0)
+        combined_test.to_csv(os.path.join(DATASET_PATH, 'Monthly-test.csv'), index=False)
 
-        naive2_archive = os.path.join(DATASET_PATH, url_file_name(NAIVE2_FORECAST_URL))
-        download(NAIVE2_FORECAST_URL, naive2_archive)
-        patoolib.extract_archive(naive2_archive, outdir=DATASET_PATH)
+        # Save numpy arrays
+        timeseries_dict = OrderedDict(list(zip(m4_ids, [[]] * len(m4_ids))))
+        
+        logging.info('Processing training data...')
+        for df in all_training_data:
+            df.set_index(df.columns[0], inplace=True)
+            for m4id, row in df.iterrows():
+                values = pd.to_numeric(row.values, errors='coerce')
+                timeseries_dict[m4id] = values[~np.isnan(values)]
+        
+        np.savez(TRAINING_DATASET_CACHE_FILE_PATH, 
+                 data=np.array(list(timeseries_dict.values()), dtype=object),
+                 allow_pickle=True)
+        
+        # Reset for test data
+        timeseries_dict = OrderedDict(list(zip(m4_ids, [[]] * len(m4_ids))))
+        
+        logging.info('Processing test data...')
+        for df in all_test_data:
+            df.set_index(df.columns[0], inplace=True)
+            for m4id, row in df.iterrows():
+                values = pd.to_numeric(row.values, errors='coerce')
+                timeseries_dict[m4id] = values[~np.isnan(values)]
+        
+        np.savez(TEST_DATASET_CACHE_FILE_PATH, 
+                 data=np.array(list(timeseries_dict.values()), dtype=object),
+                 allow_pickle=True)
 
 
 @dataclass()

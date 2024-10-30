@@ -1,9 +1,6 @@
-"""Common settings"""
-# taken from https://github.com/ServiceNow/N-BEATS/blob/master/common/settings.py
-
 import os
 
-STORAGE=os.getenv('STORAGE')
-DATASETS_PATH=os.path.join(STORAGE, 'datasets')
-EXPERIMENTS_PATH=os.path.join(STORAGE, 'experiments')
-TESTS_STORAGE_PATH=os.path.join(STORAGE, 'test')
+# Set the base path to the current directory
+BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STORAGE = BASE_PATH
+DATASETS_PATH = os.path.join(STORAGE, 'datasets')
