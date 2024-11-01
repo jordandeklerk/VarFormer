@@ -1,28 +1,12 @@
 import os
 import torch
-from models import VarFormer, ATFNet, Autoformer, TimesNet, DLinear, FEDformer, \
-    Informer, PatchTST, FreTS, FITS, TFDNet, \
-   Crossformer, FiLM, SCINet, iTransformer \
+from models import VarFormer
      
 class Exp_Basic(object):
     def __init__(self, args):
         self.args = args
         self.model_dict = {
-            'VarFormer': VarFormer,
-            'TimesNet': TimesNet,
-            'Autoformer': Autoformer,
-            'DLinear': DLinear,
-            'FEDformer': FEDformer,
-            'Informer': Informer,
-            'PatchTST': PatchTST,
-            'FiLM': FiLM,
-            'Crossformer': Crossformer,
-            'iTransformer': iTransformer,
-            'SCINet': SCINet,
-            'TFDNet': TFDNet,
-            'FreTS': FreTS,
-            'FITS': FITS,
-            'ATFNet': ATFNet,
+            'VarFormer': VarFormer
         }
         self.device = self._acquire_device()
         self.args.device = self.device
