@@ -105,16 +105,6 @@ class Exp_Long_Term_Forecast(Exp_Basic):
         if self.args.use_amp:
             scaler = torch.cuda.amp.GradScaler()
 
-        # Initialize scheduler based on model type
-        if self.args.model == 'VarFormer':
-            scheduler = lr_scheduler.OneCycleLR(
-                optimizer=model_optim,
-                steps_per_epoch=train_steps,
-                pct_start=self.args.pct_start,
-                epochs=self.args.train_epochs,
-                max_lr=self.args.learning_rate
-            )
-
         for epoch in range(self.args.train_epochs):
             iter_count = 0
             train_loss = []
@@ -169,9 +159,6 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                     loss.backward()
                     model_optim.step()
 
-                if self.args.model == 'VarFormer':
-                    scheduler.step()
-
             print("Epoch: {} cost time: {}".format(epoch + 1, time.time() - epoch_time))
             train_loss = np.average(train_loss)
             vali_loss = self.vali(vali_data, vali_loader, criterion)
@@ -184,10 +171,7 @@ class Exp_Long_Term_Forecast(Exp_Basic):
                 print("Early stopping")
                 break
 
-            if self.args.model == 'VarFormer':
-                print('Updating learning rate to {}'.format(scheduler.get_last_lr()[0]))
-            else:
-                adjust_learning_rate(model_optim, epoch + 1, self.args)
+            adjust_learning_rate(model_optim, epoch + 1, self.args)
 
         best_model_path = path + '/' + 'checkpoint.pth'
         self.model.load_state_dict(torch.load(best_model_path))
