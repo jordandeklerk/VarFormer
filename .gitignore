@@ -22,7 +22,7 @@ wheels/
 
 # Virtual Environment
 ts_venv/
-venv/
+.venv/
 ENV/
 env/
 
