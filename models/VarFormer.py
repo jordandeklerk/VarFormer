@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 
-from ..layers.Memory_Transformer import *
-from ..layers.Generative import *
+from layers.Memory_Transformer import TransformerModel
+from layers.Generative import GenerativeModel
 
 
 class Model(nn.Module):
